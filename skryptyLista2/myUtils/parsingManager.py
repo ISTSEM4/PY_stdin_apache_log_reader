@@ -1,6 +1,6 @@
 import sys
-import apacheLogParser as parser
-
+import myUtils.apacheLogParser as parser
+from myUtils.lineAttributes import Attribute
 
 class ParsingManager:
     def __init__(self):
@@ -19,5 +19,8 @@ class ParsingManager:
             return False
 
         else:
-            return True
+            tuple_to_be = []
+            for attribute in Attribute:
+                tuple_to_be.append(parser.get_attribute(attribute, line))
+            return tuple(tuple_to_be)
 
