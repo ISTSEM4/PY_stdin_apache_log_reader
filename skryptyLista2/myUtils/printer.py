@@ -1,3 +1,6 @@
+import sys
+
+
 def print_task_result(task_index, task_name, task_value):
     print("------------------------------------------\n" +
           task_index +
@@ -22,3 +25,6 @@ def automatic_print_task_result(task_index, task_name, most_relevant_info, error
     print_task_result(task_index, task_name, prettify_task_value(most_relevant_info, errors, num_of_lines, error_limit))
 
 
+def stdout_print(**kwargs):
+    for description, content in kwargs.items():
+        print(f"{description}: \n{content}\n")

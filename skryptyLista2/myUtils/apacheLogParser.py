@@ -1,6 +1,8 @@
 import ipaddress
 import re
 from myUtils.lineAttributes import Attribute
+from datetime import datetime
+
 
 # index of split words: 0       1 2             3               4         5        6         7             8        9
 # a valid line has:{ip/address} - - {[DAY/MON/DD/YYYY:HH:MM:SS INT]} {"HTTPmthd + dir + HTTPversion"} returnedInfo INT
@@ -75,7 +77,7 @@ def get_time(line):
 
 
 def get_date(line):
-    return line[line.find("[") + 1:line.find("[") + 17]
+    return line[line.find("[") + 1:line.find("[") + 12]
 
 
 def get_time_zone(line):
@@ -98,18 +100,43 @@ def get_format_of_pulled(line):
     return get_path_info(line)[line.rfind(".") + 1:]
 
 
+def get_format_of_path(path):
+    return path[path.rfind(".") + 1:]
+
+
 def is_pulled_visual_format(line):
     pattern = r"(?:gif|jpg|jpeg|xbm)"
     return re.search(pattern, line) is not None
 
-def get_attribute(attrinute: Attribute, line):
-    match attrinute.value:
+
+def get_remote_host(line):
+    return line.split(" ")[0]
+
+
+def get_remote_user(line):
+    return line.split(" ")[1]
+
+
+def get_auth_user(line):
+    return line.split(" ")[2]
+
+
+def get_response_code(line):
+    return line.split(" ")[8]
+
+
+def get_response_size(line):
+    return line.split(" ")[9]
+
+
+def get_attribute(attribute: Attribute, line):
+    match attribute.value:
         case 1:
-            return line.split(" ")[0]
+            return get_remote_host(line)
         case 2:
-            return line.split(" ")[1]
+            return get_remote_user(line)
         case 3:
-            return line.split(" ")[2]
+            return get_auth_user(line)
         case 4:
             return get_time(line)
         case 5:
@@ -123,6 +150,49 @@ def get_attribute(attrinute: Attribute, line):
         case 9:
             return get_http_version(line)
         case 10:
-            return line.split(" ")[8]
+            return get_response_code(line)
         case 11:
-            return line.split(" ")[9]
+            return get_response_size(line)
+
+
+def get_attribute_in_format(attribute: Attribute, line):
+    match attribute.value:
+        case 1:
+            return line.split(" ")[0]
+        case 2:
+            return line.split(" ")[1]
+        case 3:
+            return line.split(" ")[2]
+        case 4:
+            return datetime.strptime(get_date(line), "%d/%b/%Y").date()
+        case 5:
+            return datetime.strptime(get_time(line), "%H:%M:%S").time()
+        case 6:
+            return get_time_zone(line)
+        case 7:
+            return get_http_method(line)
+        case 8:
+            return get_path_info(line)
+        case 9:
+            return get_http_version(line)
+        case 10:
+            return int(line.split(" ")[8])
+        case 11:
+            return int(line.split(" ")[9])
+
+
+def is_response_4xx_format(code):
+    return code.startswith("4")
+
+
+def is_response_5xx_format(code):
+    return code.startswith("5")
+
+
+def turn_line_to_tuple(line):
+    tuple_to_be = []
+
+    for attribute in Attribute:
+        tuple_to_be.append(get_attribute_in_format(attribute, line))
+
+    return tuple(tuple_to_be)
