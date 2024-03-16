@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class Attribute(Enum):
     REMOTE_HOST = 1
     REMOTE_USER = 2

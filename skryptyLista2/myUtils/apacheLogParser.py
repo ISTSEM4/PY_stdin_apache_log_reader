@@ -2,6 +2,9 @@ import ipaddress
 import re
 from lineAttributes import Attribute
 
+# index of split words: 0       1 2             3               4         5        6         7             8        9
+# a valid line has:{ip/address} - - {[DAY/MON/DD/YYYY:HH:MM:SS INT]} {"HTTPmthd + dir + HTTPversion"} returnedInfo INT
+
 
 def is_valid_domain_or_ip(address):
     # Regular expression for validating domain address
@@ -12,7 +15,6 @@ def is_valid_domain_or_ip(address):
         return re.match(pattern, address) is not None
     else:
         return True
-
 
 
 def is_valid_date_format(date_str):
@@ -43,12 +45,6 @@ def is_valid_bitnumber(bit_amm_str):
     return re.match(pattern, bit_amm_str) is not None
 
 
-
-
-# index of split words: 0       1 2             3               4         5        6         7             8        9
-# a valid line has:{ip/address} - - {[DAY/MON/DD/YYYY:HH:MM:SS INT]} {"HTTPmthd + dir + HTTPversion"} returnedInfo INT
-
-
 def validate_line(line):
     line_divided = line.split(" ")
 
@@ -61,10 +57,10 @@ def validate_line(line):
     if not (is_valid_name_format(line_divided[1]) and is_valid_name_format(line_divided[2])):
         raise TypeError("Incorrect name/s")
 
-    if not is_valid_date_format(line_divided[3]+" "+line_divided[4]):
+    if not is_valid_date_format(line_divided[3] + " " + line_divided[4]):
         raise TypeError("Incorrect date format")
 
-    if not is_valid_httpmthd_dir_httpversion_format(line_divided[5]+" "+line_divided[6]+" "+line_divided[7]):
+    if not is_valid_httpmthd_dir_httpversion_format(line_divided[5] + " " + line_divided[6] + " " + line_divided[7]):
         raise TypeError("Incorrect http mthd or dir or http version")
 
     if not is_valid_http_response(line_divided[8]):
@@ -74,29 +70,37 @@ def validate_line(line):
         raise TypeError("Incorrect bitnumber")
 
 
-def get_TIME(line):
-    return line[line.find(":")+1:line.find(":")+9]
+def get_time(line):
+    return line[line.find(":") + 1:line.find(":") + 9]
 
 
-def get_DATE(line):
-    return line[line.find("[")+1:line.find("[")+17]
+def get_date(line):
+    return line[line.find("[") + 1:line.find("[") + 17]
 
 
-def get_TIME_ZONE(line):
-    return line[line.find("[")+26:line.find("]")]
+def get_time_zone(line):
+    return line[line.find("[") + 26:line.find("]")]
 
 
-def get_HTTP_METHOD(line):
+def get_http_method(line):
     return re.search(r'"([A-Z]+)\s', line).group(1)
 
 
-def get_PATH_INFO(line):
-    return line[line.index(" ", line.find('"'))+1:line.index(" ", line.index(" ", line.find('"'))+1)]
+def get_path_info(line):
+    return line[line.index(" ", line.find('"')) + 1:line.index(" ", line.index(" ", line.find('"')) + 1)]
 
 
-def get_HTTP_VERSION(line):
+def get_http_version(line):
     pass
 
+
+def get_format_of_pulled(line):
+    return get_path_info(line)[line.rfind(".") + 1:]
+
+
+def is_pulled_visual_format(line):
+    pattern = r"(?:gif|jpg|jpeg|xbm)"
+    return re.search(pattern, line) is not None
 
 def get_attribute(attrinute: Attribute, line):
     match attrinute.value:
@@ -107,17 +111,17 @@ def get_attribute(attrinute: Attribute, line):
         case 3:
             return line.split(" ")[2]
         case 4:
-            return get_TIME(line)
+            return get_time(line)
         case 5:
-            return get_DATE(line)
+            return get_date(line)
         case 6:
-            return get_TIME_ZONE(line)
+            return get_time_zone(line)
         case 7:
-            return get_HTTP_METHOD(line)
+            return get_http_method(line)
         case 8:
-            return get_PATH_INFO(line)
+            return get_path_info(line)
         case 9:
-            return get_HTTP_VERSION(line)
+            return get_http_version(line)
         case 10:
             return line.split(" ")[8]
         case 11:
